@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hidden Cipher - Protected</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      margin-top: 8px;
+      background: #222;
+      color: #eee;
+      border: none;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #0b79d0;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #095a9d;
+    }
+    #key {
+      font-family: monospace;
+      letter-spacing: 4px;
+      font-size: 20px;
+      background: #222;
+      border-radius: 4px;
+      padding: 8px;
+      margin-top: 8px;
+      user-select: all;
+    }
+    p.note {
+      font-size: 14px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+    #cipher-container {
+      display: none;
+    }
+    #access-denied {
+      color: red;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div id="access-denied">Access Denied. Incorrect Passcode.</div>
+
+  <div id="cipher-container">
+    <h1>The Hidden Cipher</h1>
+
+    <button onclick="generateKey()">Generate Random Key</button>
+
+    <label for="key">Substitution Key (26 letters):</label>
+    <input
+      type="text"
+      id="key"
+      maxlength="26"
+      placeholder="Paste or type the 26-letter key here"
+    />
+    <p class="note">
+      Paste or type the 26-letter substitution key here to encrypt or decrypt.
+    </p>
+
+    <label for="plaintext">Plaintext (English):</label>
+    <textarea
+      id="plaintext"
+      rows="4"
+      placeholder="Enter your message..."
+    ></textarea>
+    <button onclick="encrypt()">Encrypt</button>
+    <textarea
+      id="ciphertext"
+      rows="4"
+      placeholder="Encrypted message will appear here..."
+      readonly
+    ></textarea>
+
+    <label for="cipherInput">Ciphertext (Code):</label>
+    <textarea
+      id="cipherInput"
+      rows="4"
+      placeholder="Enter coded message here..."
+    ></textarea>
+    <button onclick="decrypt()">Decrypt</button>
+    <textarea
+      id="decrypted"
+      rows="4"
+      placeholder="Decrypted message will appear here..."
+      readonly
+    ></textarea>
+  </div>
+
+  <script>
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    function generateKey() {
+      let arr = alphabet.split("");
+      // Fisher-Yates shuffle
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      const key = arr.join("");
+      document.getElementById("key").value = key;
+      // Clear only encrypted and decrypted outputs
+      document.getElementById("ciphertext").value = "";
+      document.getElementById("decrypted").value = "";
+      document.getElementById("cipherInput").value = "";
+      // Do NOT clear plaintext
+    }
+
+    function encrypt() {
+      const key = document.getElementById("key").value.toUpperCase();
+      if (key.length !== 26 || !isValidKey(key)) {
+        alert("Please enter a valid 26-letter key (A-Z, no duplicates)!");
+        return;
+      }
+      const input = document.getElementById("plaintext").value.toUpperCase();
+      let result = "";
+
+      for (let char of input) {
+        if (alphabet.includes(char)) {
+          const idx = alphabet.indexOf(char);
+          result += key[idx];
+        } else {
+          result += char;
+        }
+      }
+
+      document.getElementById("ciphertext").value = result;
+    }
+
+    function decrypt() {
+      const key = document.getElementById("key").value.toUpperCase();
+      if (key.length !== 26 || !isValidKey(key)) {
+        alert("Please enter a valid 26-letter key (A-Z, no duplicates)!");
+        return;
+      }
+      const input = document.getElementById("cipherInput").value.toUpperCase();
+      let result = "";
+
+      for (let char of input) {
+        if (key.includes(char)) {
+          const idx = key.indexOf(char);
+          result += alphabet[idx];
+        } else {
+          result += char;
+        }
+      }
+
+      document.getElementById("decrypted").value = result;
+    }
+
+    function isValidKey(key) {
+      // Must contain all letters A-Z exactly once
+      const letters = key.split("").sort().join("");
+      return letters === alphabet;
+    }
+
+    // Passcode logic
+    const correctPasscode = "letmein"; // Change this to your desired passcode (case-insensitive)
+
+    window.onload = function () {
+      const userPass = prompt("Enter passcode to access the cipher tool:");
+      const cipherContainer = document.getElementById("cipher-container");
+      const accessDenied = document.getElementById("access-denied");
+
+      if (userPass && userPass.toLowerCase() === correctPasscode.toLowerCase()) {
+        cipherContainer.style.display = "block";
+        accessDenied.style.display = "none";
+      } else {
+        cipherContainer.style.display = "none";
+        accessDenied.style.display = "block";
+      }
+    };
+  </script>
+</body>
+</html>
